@@ -52,28 +52,3 @@ class PasswordChangeTemporary(PasswordChangePolicy):
     def validate(self, last_pw_change):
         if last_pw_change is not None and last_pw_change.is_temporary:
             raise ValidationError(self.text, code='password-temporary')
-
-
-def update_password(session, user):
-    """ Store hashed version of users' password hash in the current session
-    """
-    hd = hashlib.sha256('pwch' + user.password).hexdigest()
-    session['password_hash'] = hd
-
-
-def password_changed(session, user):
-    """ Check if password changed during session, without updating the password
-    stored in the session.
-    """
-    if not user.is_authenticated():
-        return False
-
-    if not user.has_usable_password():
-        return False
-
-    if not 'password_hash' in session:
-        update_password(session, user)
-        return False
-
-    hd = hashlib.sha256('pwch' + user.password).hexdigest()
-    return session.get('password_hash', '') != hd

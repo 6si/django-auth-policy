@@ -56,21 +56,3 @@ Quick setup
   see if everything is in place. This command is **NO guarantee** that all
   policies are enforced since it's easy for developers to work around the checks
   performed by this command.
-
-Log-out after password changes
-------------------------------
-
-The ``AuthenticationPolicyMiddleware`` will log-off all sessions for a specific
-user when the password of the user changes. This is enforced by storing a hash
-of the users password field (which is stored using a Django password hasher) in
-its session. This value will be compared to the original password field for
-each sub-sequent request, and when it doesn't match, the session will be flushed
-and the user will be logged-off.
-
-Views which change the users password but do not want to log-off the user should
-call ``django.password_change.update_password(request.session, request.user)``
-directly after the user changes its' password. All *other* sessions for the
-user will still be flushed (which is the intended behaviour of this feature).
-
-This behaviour can be disabled by setting ``LOGOUT_AFTER_PASSWORD_CHANGE`` to
-``False``.

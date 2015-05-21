@@ -7,12 +7,8 @@ from django import http
 
 from django_auth_policy.handlers import PasswordChangePolicyHandler
 from django_auth_policy.forms import StrictPasswordChangeForm
-from django_auth_policy.password_change import update_password, password_changed
 
 logger = logging.getLogger(__name__)
-
-LOGOUT_AFTER_PASSWORD_CHANGE = getattr(settings,
-        'LOGOUT_AFTER_PASSWORD_CHANGE', True)
 
 
 class AuthenticationPolicyMiddleware(object):
@@ -42,12 +38,6 @@ class AuthenticationPolicyMiddleware(object):
         if not request.user.is_authenticated():
             return None
 
-        # Check if users' password has been changed, and then logout user.
-        # To prevent logout at password change views call the
-        # `update_password` function in that view
-        if not 'password_hash' in request.session:
-            update_password(request.session, request.user)
-
         # Log out disabled users
         if not request.user.is_active:
             logger.info('Log out inactive user, user=%s', request.user)
@@ -73,18 +63,6 @@ class AuthenticationPolicyMiddleware(object):
         if request.session.get('password_change_enforce', False):
             self.password_change_policy_handler.update_session(
                 request, request.user)
-
-        # Check if users' password has been changed, and then logout user.
-        # To prevent logout at password change views call the
-        # `update_password` function in that view
-        # Ignore non 2xx responses (e.g. redirects).
-        if (response.status_code >= 200 and
-                response.status_code < 300 and
-                LOGOUT_AFTER_PASSWORD_CHANGE and
-                password_changed(request.session, request.user)):
-
-            logger.info('Logout session because user changed its password')
-            return self.logout(request)
 
         return response
 
@@ -112,7 +90,6 @@ class AuthenticationPolicyMiddleware(object):
         # Run 'requires_csrf_token' because CSRF middleware might have been
         # skipped over here
         resp = requires_csrf_token(view_func)(request, *args, **kwargs)
-        update_password(request.session, request.user)
         return resp
 
     def logout(self, request):
