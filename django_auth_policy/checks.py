@@ -1,9 +1,5 @@
-from django.core.urlresolvers import reverse, resolve
 from django.conf import settings
 from django.core import checks
-
-from django_auth_policy.forms import (StrictAuthenticationForm,
-                                      StrictPasswordChangeForm)
 
 
 @checks.register('authpolicy')
