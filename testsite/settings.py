@@ -65,6 +65,7 @@ PASSWORD_STRENGTH_POLICIES = (
     ('django_auth_policy.password_strength.PasswordDisallowedTerms', {
         'terms': ['Testsite']
     }),
+    ('django_auth_policy.password_strength.PasswordLimitReuse', {}),
 )
 PASSWORD_CHANGE_POLICIES = (
     ('django_auth_policy.password_change.PasswordChangeExpired', {}),

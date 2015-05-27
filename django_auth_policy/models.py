@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
@@ -98,8 +99,11 @@ class PasswordChangeAdmin(models.Manager):
 
         password = get_random_string(length, allowed_chars)
 
-        PasswordChange.objects.create(user=user, is_temporary=True,
-                                      successful=True)
+        pw_change = PasswordChange(user=user, is_temporary=True,
+                                   successful=True)
+        pw_change.set_password(password)
+        pw_change.save()
+
         user.set_password(password)
         user.save()
 
@@ -117,7 +121,7 @@ class PasswordChange(models.Model):
     # for a user, this password must be changed at first login
     is_temporary = models.BooleanField(_('is temporary'), default=False)
     # Optionally keep password a history of hashes to prevent users from
-    # reusing old passwords. FIXME This has *NOT* been implemented
+    # reusing old passwords.
     password = models.CharField(_('password'), max_length=128, default='',
                                 editable=False)
 
@@ -127,6 +131,9 @@ class PasswordChange(models.Model):
         verbose_name = _('password change')
         verbose_name_plural = _('password changes')
         ordering = ('-id',)
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
 
     def save(self, *args, **kwargs):
         if self.user_id is not None and not self.user_repr:

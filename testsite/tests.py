@@ -32,7 +32,8 @@ from django_auth_policy.password_strength import (PasswordMinLength,
                                                   PasswordContainsNumbers,
                                                   PasswordContainsSymbols,
                                                   PasswordUserAttrs,
-                                                  PasswordDisallowedTerms)
+                                                  PasswordDisallowedTerms,
+                                                  PasswordLimitReuse)
 from django_auth_policy.middleware import LoginRequiredMiddleware
 
 
@@ -599,6 +600,29 @@ class PasswordStrengthTests(TestCase):
             if not valid:
                 errs = [unicode(policy.policy_text)]
                 self.assertEqual(form.errors['new_password1'], errs)
+
+    def test_password_limit_reuse(self):
+        policy = PasswordLimitReuse()
+
+        passwds = [
+            ('123Site###Test', True),
+            ('1234Site###Test', True),
+            ('12345Site###Test', True),
+            ('123456Site###Test', True),
+            ('123456Site###Test', False),
+            ('12345Site###Test', False),
+            ('1234Site###Test', False),
+            ('123ite###Test', True),
+            ('1234567Site###Test', True),
+        ]
+        for passwd, valid in passwds:
+            form = StrictSetPasswordForm(self.user, data={
+                'new_password1': passwd,
+                'new_password2': passwd})
+            self.assertEqual(form.is_valid(), valid)
+            if not valid:
+                self.assertEqual(form.errors['new_password1'],
+                                 [unicode(policy.policy_text)])
 
     def test_authentication_username_whitelist(self):
         policy = AuthenticationUsernameWhitelist(

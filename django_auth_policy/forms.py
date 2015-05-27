@@ -122,8 +122,11 @@ class StrictSetPasswordForm(forms.Form):
     def is_valid(self):
         valid = super(StrictSetPasswordForm, self).is_valid()
         if self.is_bound:
-            PasswordChange.objects.create(user=self.user, successful=valid,
-                                          is_temporary=False)
+            pw_change = PasswordChange(user=self.user, successful=valid,
+                                       is_temporary=False)
+            pw_change.set_password(self.cleaned_data.get('new_password1'))
+            pw_change.save()
+
             if valid:
                 logger.info('Password change successful for user %s',
                             self.user)

@@ -1,10 +1,12 @@
 import unicodedata
 import re
 
+from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 from django_auth_policy import BasePolicy
+from django_auth_policy.models import PasswordChange
 
 
 def _normalize_unicode(value):
@@ -195,3 +197,31 @@ class PasswordDisallowedTerms(PasswordStrengthPolicy):
     @property
     def policy_text(self):
         return self.text.format(terms=u', '.join(self.terms))
+
+
+class PasswordLimitReuse(PasswordStrengthPolicy):
+    """ Limits reuse of previous passwords
+    Use this to prevent users from reusing one of their previous passwords
+    """
+    max_pw_history = 3
+    text = _('Password must be different than your last password.')
+    plural_text = _('Passwords must not be one of your last {max_pw_history} '
+                    'passwords.')
+
+    def validate(self, value, user=None):
+        if user is None:
+            return
+
+        last_pw_changes = PasswordChange.objects.filter(
+            user=user, successful=True).order_by('-id')[:self.max_pw_history]
+
+        for pw_change in last_pw_changes:
+            if check_password(value, pw_change.password):
+                raise ValidationError(self.policy_text, 'password_limit_reuse')
+
+    @property
+    def policy_text(self):
+        if self.max_pw_history > 1:
+            return self.plural_text.format(max_pw_history=self.max_pw_history)
+        else:
+            return self.text.format(max_pw_history=self.max_pw_history)
