@@ -5,6 +5,9 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 
+from django_auth_policy.settings import (TEMP_PASSWORD_LENGTH,
+                                         TEMP_PASSWORD_CHARS)
+
 
 class LoginAttemptManager(models.Manager):
     def unlock(self, usernames=[], addresses=[]):
@@ -89,15 +92,7 @@ class PasswordChangeAdmin(models.Manager):
     def set_temporary_password(self, user):
         """Returns a random password and sets this as temporary password for
         provided user."""
-        # Characters used to generate temporary passwords
-        allowed_chars = getattr(settings, 'TEMP_PASSWORD_CHARS',
-                                'abcdefghijlkmnopqrstuvwxyz'
-                                'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-                                '0123456789')
-        # Temporary password length
-        length = getattr(settings, 'TEMP_PASSWORD_LENGTH', 12)
-
-        password = get_random_string(length, allowed_chars)
+        password = get_random_string(TEMP_PASSWORD_LENGTH, TEMP_PASSWORD_CHARS)
 
         pw_change = PasswordChange(user=user, is_temporary=True,
                                    successful=True)
