@@ -16,8 +16,7 @@ setup(
     url='https://github.com/rudolphfroger/django-auth-policy',
     license='BSD',
     packages=find_packages(exclude=["testsite", "testsite.*", "*.tests", "*.tests.*", "tests.*", "tests"]),
-    package_data={'django_auth_policy': ['locale/*/LC_MESSAGES/*.mo',
-                                         'locale/*/LC_MESSAGES/*.po']},
+    include_package_data=True,
     install_requires=['Django>=1.7'],
     classifiers=[
         'Development Status :: 3 - Alpha',
