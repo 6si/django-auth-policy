@@ -34,13 +34,30 @@ class StrictUserCreationForm(forms.ModelForm):
                                     'invalid': _("This value may contain only "
                                                  "letters, numbers and "
                                                  "@/./+/-/_ characters.")})
+    password = forms.CharField(label=_("Temporary Password"),
+                               widget=forms.TextInput,
+                               required=False)
 
     class Meta:
         model = user_model
         fields = ('username', 'email', 'first_name', 'last_name')
 
+    def __init__(self, *args, **kwargs):
+        if 'initial' in kwargs:
+            kwargs['initial'].update(
+                {'password': PasswordChange.objects.get_random_password()})
+        super(StrictUserCreationForm, self).__init__(*args, **kwargs)
+
+    def clean_password(self):
+        pw = self.cleaned_data.get('password')
+        if not pw:
+            return None
+        return pw
+
     def save(self, commit=True):
         user = super(StrictUserCreationForm, self).save(commit=False)
+        password = self.cleaned_data["password"]
+        user.set_password(password)
         if commit:
             user.save()
         return user
@@ -58,8 +75,8 @@ class StrictUserAdmin(UserAdmin):
     readonly_fields = ('last_login', 'date_joined')
     add_form = StrictUserCreationForm
     add_fieldsets = ((None, {'classes': ('wide',),
-                             'fields': ('username', 'email', 'first_name',
-                                        'last_name')}),)
+                             'fields': ('username', 'password', 'email',
+                                        'first_name', 'last_name')}),)
     list_display = ('username', 'email', 'is_active', 'last_login', 'is_staff')
 
     actions = ['reactivate_users', 'unlock_username',
@@ -141,4 +158,11 @@ class StrictUserAdmin(UserAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.save()
+        if not change and form.cleaned_data.get('password'):
+            password = form.cleaned_data['password']
+            PasswordChange.objects.set_temporary_password(obj,
+                                                          password=password)
+            signals.temporary_password_set.send(sender=obj, user=obj,
+                                                request=None,
+                                                password=password)
         UserChange.objects.create(user=obj, by_user=request.user)

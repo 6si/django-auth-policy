@@ -89,10 +89,13 @@ class LoginAttempt(models.Model):
 
 
 class PasswordChangeAdmin(models.Manager):
-    def set_temporary_password(self, user):
+    def get_random_password(self):
+        return get_random_string(TEMP_PASSWORD_LENGTH, TEMP_PASSWORD_CHARS)
+
+    def set_temporary_password(self, user, password=None):
         """Returns a random password and sets this as temporary password for
         provided user."""
-        password = get_random_string(TEMP_PASSWORD_LENGTH, TEMP_PASSWORD_CHARS)
+        password = password or self.get_random_password()
 
         pw_change = PasswordChange(user=user, is_temporary=True,
                                    successful=True)
