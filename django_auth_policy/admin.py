@@ -4,14 +4,15 @@ from django import http
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.contrib import admin
-from django.contrib.auth.views import password_change
+from django.contrib.auth.views import password_change, redirect_to_login
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.conf import settings
 
 from django_auth_policy.models import PasswordChange, LoginAttempt, UserChange
 from django_auth_policy.forms import (StrictAuthenticationForm,
                                       StrictPasswordChangeForm)
-from django_auth_policy.settings import REPLACE_AUTH_USER_ADMIN
+from django_auth_policy.settings import (REPLACE_AUTH_USER_ADMIN,
+                                         LOGIN_VIEW_NAME)
 
 
 logger = logging.getLogger(__name__)
@@ -111,11 +112,19 @@ class UserChangeAdmin(admin.ModelAdmin):
 
 
 def admin_login(request, extra_context=None):
-    """ Redirects to default login view which enforces the authentication
+    """ Use the default login view which enforces the authentication
     policy
     """
-    q = REDIRECT_FIELD_NAME + '=' + request.get_full_path()
-    return http.HttpResponseRedirect(reverse('login') + '?' + q)
+    if request.method == 'GET' and admin.site.has_permission(request):
+        # Already logged-in, redirect to admin index
+        index_path = reverse('admin:index', current_app=admin.site.name)
+        return http.HttpResponseRedirect(index_path)
+
+    redirect_to = request.POST.get(REDIRECT_FIELD_NAME,
+                                   request.GET.get(REDIRECT_FIELD_NAME,
+                                                   request.get_full_path()))
+    return redirect_to_login(redirect_to, reverse(LOGIN_VIEW_NAME),
+                             REDIRECT_FIELD_NAME)
 
 
 def admin_password_change(request):
