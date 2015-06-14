@@ -55,7 +55,7 @@ class PasswordChangePolicyHandler(object):
         if self._policies:
             return
 
-        self._policies = parse_policies(settings.PASSWORD_CHANGE_POLICIES)
+        self._policies = self.parse_policies(settings.PASSWORD_CHANGE_POLICIES)
 
     def parse_policies(self, entries):
         result = []
