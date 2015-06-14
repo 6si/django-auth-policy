@@ -55,30 +55,39 @@ class PasswordChangePolicyHandler(object):
         if self._policies:
             return
 
-        for policy_path, kwargs in settings.PASSWORD_CHANGE_POLICIES:
+        self._policies = parse_policies(settings.PASSWORD_CHANGE_POLICIES)
+
+    def parse_policies(self, entries):
+        result = []
+        for policy_path, kwargs in entries:
             policy_class = import_string(policy_path)
             policy = policy_class(**kwargs)
+            result.append(policy)
+        return result
 
-            self._policies.append(policy)
-
-    def validate(self, user):
+    def validate(self, user, policies=None):
         try:
             last_pw_change = PasswordChange.objects.filter(
                 user=user, successful=True).order_by('-id')[0]
         except IndexError:
             last_pw_change = None
 
-        for pol in self._policies:
+        if policies:
+            policies = self.parse_policies(policies)
+        else
+            policies = self._policies
+
+        for pol in policies:
             pol.validate(last_pw_change)
 
-    def update_session(self, request, user):
+    def update_session(self, request, user, policies=None):
         """ Called directly after successful authentication
         """
         if not hasattr(request, 'session'):
             return
 
         try:
-            self.validate(user)
+            self.validate(user, policies=policies)
         except ValidationError as exc:
             if request.session.get('password_change_enforce') != exc.code:
                 logger.info(u'User %s must change password; %s',
