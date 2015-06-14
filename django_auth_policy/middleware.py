@@ -64,9 +64,8 @@ class AuthenticationPolicyMiddleware(object):
         # When password change is enforced, check if this is still required
         # for next request
         if request.session.get('password_change_enforce', False):
-            policies = request.session.get('password_change_policies', None)
             self.password_change_policy_handler.update_session(
-                request, request.user, policies=policies)
+                request, request.user)
 
         return response
 

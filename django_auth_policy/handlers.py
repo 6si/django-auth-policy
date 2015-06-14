@@ -72,21 +72,23 @@ class PasswordChangePolicyHandler(object):
         except IndexError:
             last_pw_change = None
 
-        if policies:
-            policies = self.parse_policies(policies)
-        else:
+        if policies is None:
             policies = self._policies
+        else:
+            policies = self.parse_policies(policies)
 
         for pol in policies:
             pol.validate(last_pw_change)
 
-    def update_session(self, request, user, policies=None):
+    def update_session(self, request, user):
         """ Called directly after successful authentication
         """
         if not hasattr(request, 'session'):
             return
 
         try:
+            # override password_change_policies with session value
+            policies = request.session.get('password_change_policies', None)
             self.validate(user, policies=policies)
         except ValidationError as exc:
             if request.session.get('password_change_enforce') != exc.code:
