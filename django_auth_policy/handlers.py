@@ -74,7 +74,7 @@ class PasswordChangePolicyHandler(object):
 
         if policies:
             policies = self.parse_policies(policies)
-        else
+        else:
             policies = self._policies
 
         for pol in policies:
