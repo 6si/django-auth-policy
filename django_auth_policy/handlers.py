@@ -10,6 +10,14 @@ from django_auth_policy.models import LoginAttempt, PasswordChange
 
 logger = logging.getLogger(__name__)
 
+def parse_policies(entries):
+    policies = []
+    policy_texts = []
+    for policy_path, kwargs in entries:
+        policy_class = import_string(policy_path)
+        policy = policy_class(**kwargs)
+        policies.append(policy)
+    return policies
 
 class PasswordStrengthPolicyHandler(object):
     """ Runs all policies related to password strength requirements
@@ -25,7 +33,6 @@ class PasswordStrengthPolicyHandler(object):
         for policy_path, kwargs in settings.PASSWORD_STRENGTH_POLICIES:
             policy_class = import_string(policy_path)
             policy = policy_class(**kwargs)
-
             self._policies.append(policy)
 
             if policy.show_policy and policy.policy_text:
@@ -34,13 +41,18 @@ class PasswordStrengthPolicyHandler(object):
                     'caption': policy.policy_caption,
                 })
 
-    def validate(self, password, user=None):
+    def validate(self, password, user=None, policies=None):
         """ Validate password strength against all password policies.
         One should also provide the user (when available) that (will) use
         this password.
         Policies will raise a ValidationError when the password doesn't comply
         """
-        for pol in self._policies:
+        if policies is None:
+            policies = self._policies
+        else:
+            policies = parse_policies(policies)
+
+        for pol in policies:
             pol.validate(password, user)
 
 
@@ -54,16 +66,7 @@ class PasswordChangePolicyHandler(object):
     def __init__(self):
         if self._policies:
             return
-
-        self._policies = self.parse_policies(settings.PASSWORD_CHANGE_POLICIES)
-
-    def parse_policies(self, entries):
-        result = []
-        for policy_path, kwargs in entries:
-            policy_class = import_string(policy_path)
-            policy = policy_class(**kwargs)
-            result.append(policy)
-        return result
+        self._policies = parse_policies(settings.PASSWORD_CHANGE_POLICIES)
 
     def validate(self, user, policies=None):
         try:
@@ -75,7 +78,7 @@ class PasswordChangePolicyHandler(object):
         if policies is None:
             policies = self._policies
         else:
-            policies = self.parse_policies(policies)
+            policies = parse_policies(policies)
 
         for pol in policies:
             pol.validate(last_pw_change)
@@ -112,12 +115,7 @@ class AuthenticationPolicyHandler(object):
     def __init__(self):
         if self._policies:
             return
-
-        for policy_path, kwargs in settings.AUTHENTICATION_POLICIES:
-            policy_class = import_string(policy_path)
-            policy = policy_class(**kwargs)
-
-            self._policies.append(policy)
+        self._policies = parse_policies(settings.AUTHENTICATION_POLICIES)
 
     def pre_auth_checks(self, username, password, remote_addr, host):
         """ Policy checks before a user is authenticated
