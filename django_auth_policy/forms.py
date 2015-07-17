@@ -59,7 +59,17 @@ class StrictAuthenticationForm(forms.Form):
         if username and password:
             self.user_cache = authenticate(username=username, password=password)
             if self.user_cache is None:
+                # we expect post_auth_checks to raise the exception
                 self.auth_policy.post_auth_checks(attempt)
+                #  in case no post_auth_checks
+                logger.info(u'Authentication failure, username=%s, '
+                            'address=%s, invalid authentication.',
+                            attempt.username, attempt.source_address)
+                raise forms.ValidationError(
+                        self.error_messages['invalid_login'],
+                        code='invalid_login',
+                        params={'username': self.username_field.verbose_name},
+                        )
             else:
                 attempt.user = self.user_cache
                 attempt.save(update_fields=['user'])
