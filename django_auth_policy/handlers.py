@@ -51,9 +51,14 @@ class PasswordStrengthPolicyHandler(object):
             policies = self._policies
         else:
             policies = parse_policies(policies)
-
-        for pol in policies:
-            pol.validate(password, user)
+        errs = []
+        for pol in self._policies:
+            try:
+                pol.validate(password, user)
+            except ValidationError as e:
+                errs.append(e[0])
+        if len(errs) > 0:
+            raise ValidationError(errs)
 
 
 class PasswordChangePolicyHandler(object):
@@ -150,8 +155,6 @@ class AuthenticationPolicyHandler(object):
 
         Raises ValidationError for failed login attempts.
         """
-        assert attempt.user is not None
-
         for pol in self._policies:
             pol.post_auth_check(attempt)
 
