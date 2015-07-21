@@ -52,7 +52,7 @@ class PasswordStrengthPolicyHandler(object):
         else:
             policies = parse_policies(policies)
         errs = []
-        for pol in self._policies:
+        for pol in policies:
             try:
                 pol.validate(password, user)
             except ValidationError as e:
