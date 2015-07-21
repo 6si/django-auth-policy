@@ -47,13 +47,17 @@ class PasswordStrengthPolicyHandler(object):
         this password.
         Policies will raise a ValidationError when the password doesn't comply
         """
+        print(policies)
         if policies is None:
             policies = self._policies
         else:
+            print(policies)
             policies = parse_policies(policies)
+            print(policies)
         errs = []
         for pol in self._policies:
             try:
+                print(pol)
                 pol.validate(password, user)
             except ValidationError as e:
                 errs.append(e[0])
