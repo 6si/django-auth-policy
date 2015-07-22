@@ -62,7 +62,7 @@ class LoginAttempt(models.Model):
             max_length=200)
     # This is enabled for all failed login attempts. It is reset for every
     # successful login and can be reset by 'user admins'.
-    lockout = models.BooleanField(_('lockout'), default=True,
+    lockout = models.BooleanField(_('lockout'), default=False,
                                   help_text=_('Counts towards lockout count'))
 
     objects = LoginAttemptManager()
