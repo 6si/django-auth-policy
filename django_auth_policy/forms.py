@@ -61,6 +61,7 @@ class StrictAuthenticationForm(forms.Form):
             if self.user_cache is None:
                 #change logic so lockout is only true on failed authentication
                 attempt.lockout = True
+                attempt.save()
                 # we expect post_auth_checks to raise the exception
                 self.auth_policy.post_auth_checks(attempt)
                 #  in case no post_auth_checks
