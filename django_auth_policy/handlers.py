@@ -142,7 +142,7 @@ class AuthenticationPolicyHandler(object):
                 source_address=remote_addr,
                 hostname=host[:hostname_len],
                 successful=False,
-                lockout=True)
+                lockout=False)
 
         for pol in self._policies:
             pol.pre_auth_check(attempt, password)
