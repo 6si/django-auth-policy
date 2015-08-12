@@ -32,3 +32,38 @@ TEMP_PASSWORD_CHARS = getattr(settings, 'TEMP_PASSWORD_CHARS',
 # password change by default. Set this to False to disable automatic logouts.
 LOGOUT_AFTER_PASSWORD_CHANGE = getattr(settings,
                                        'LOGOUT_AFTER_PASSWORD_CHANGE', True)
+
+AUTHENTICATION_POLICIES = (getattr(settings, (
+    ('auth_policy.authentication.AuthenticationBasicUserChecks',
+     {}),
+    ('auth_policy.authentication.AuthenticationIpRules', {}),
+    ('auth_policy.authentication.AuthenticationRestrictLogin', {
+        'max_failed': 5,
+        'lockout_duration': 60 * 30,
+        'reset_limit': 10
+    })
+)))
+
+
+PASSWORD_STRENGTH_POLICIES = (getattr(settings, (
+    ('django_auth_policy.password_strength.PasswordMinLength',
+     {'min_length': 8}),
+    ('django_auth_policy.password_strength.PasswordContainsUpperCase',
+     {}),
+    ('django_auth_policy.password_strength.PasswordContainsNumbers',
+     {}),
+    ('django_auth_policy.password_strength.PasswordContainsSymbols',
+     {}),
+    ('django_auth_policy.password_strength.PasswordLimitReuse',
+     {}),
+)))
+
+
+PASSWORD_CHANGE_POLICIES = (getattr(settings, (
+    ('django_auth_policy.password_change.PasswordChangeExpired', {
+        'max_age': 180,
+        'allow_empty_password_history': True
+    }),
+    ('django_auth_policy.password_change.PasswordChangeTemporary',
+     {}),
+)))
