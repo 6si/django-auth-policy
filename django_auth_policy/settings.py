@@ -34,10 +34,10 @@ LOGOUT_AFTER_PASSWORD_CHANGE = getattr(settings,
                                        'LOGOUT_AFTER_PASSWORD_CHANGE', True)
 
 AUTHENTICATION_POLICIES = (getattr(settings, (
-    ('auth_policy.authentication.AuthenticationBasicUserChecks',
+    ('org_auth.auth_policy.authentication.AuthenticationBasicUserChecks',
      {}),
-    ('auth_policy.authentication.AuthenticationIpRules', {}),
-    ('auth_policy.authentication.AuthenticationRestrictLogin', {
+    ('org_auth.auth_policy.authentication.AuthenticationIpRules', {}),
+    ('org_auth.auth_policy.authentication.AuthenticationRestrictLogin', {
         'max_failed': 5,
         'lockout_duration': 60 * 30,
         'reset_limit': 10
