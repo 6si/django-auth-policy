@@ -1,7 +1,7 @@
 import logging
 import warnings
 
-from django.conf import settings
+from django_auth_policy import settings
 from django.utils.module_loading import import_string
 from django.db import transaction
 from django.core.exceptions import ValidationError
