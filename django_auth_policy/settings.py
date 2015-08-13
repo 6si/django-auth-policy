@@ -33,7 +33,7 @@ TEMP_PASSWORD_CHARS = getattr(settings, 'TEMP_PASSWORD_CHARS',
 LOGOUT_AFTER_PASSWORD_CHANGE = getattr(settings,
                                        'LOGOUT_AFTER_PASSWORD_CHANGE', True)
 
-AUTHENTICATION_POLICIES = (getattr(settings, (
+AUTHENTICATION_POLICIES = (getattr(settings, 'AUTHENTICATION_POLICIES', (
     ('org_auth.auth_policy.authentication.AuthenticationBasicUserChecks',
      {}),
     ('org_auth.auth_policy.authentication.AuthenticationIpRules', {}),
@@ -45,7 +45,7 @@ AUTHENTICATION_POLICIES = (getattr(settings, (
 )))
 
 
-PASSWORD_STRENGTH_POLICIES = (getattr(settings, (
+PASSWORD_STRENGTH_POLICIES = (getattr(settings, 'PASSWORD_STRENGTH_POLICIES', (
     ('django_auth_policy.password_strength.PasswordMinLength',
      {'min_length': 8}),
     ('django_auth_policy.password_strength.PasswordContainsUpperCase',
@@ -59,7 +59,7 @@ PASSWORD_STRENGTH_POLICIES = (getattr(settings, (
 )))
 
 
-PASSWORD_CHANGE_POLICIES = (getattr(settings, (
+PASSWORD_CHANGE_POLICIES = (getattr(settings, 'PASSWORD_CHANGE_POLICIES', (
     ('django_auth_policy.password_change.PasswordChangeExpired', {
         'max_age': 180,
         'allow_empty_password_history': True
